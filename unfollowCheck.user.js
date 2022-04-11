@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         互关检测
+// @name         Bilibili哔哩哔哩互关检测脚本
 // @namespace    http://blog.853lab.com/
 // @version      0.1
 // @description  检测互关的人
