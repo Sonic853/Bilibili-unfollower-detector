@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.7
+// @version      0.8
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
@@ -798,7 +798,7 @@
         })
       })
       bLab8A.save(bLab8A.data)
-      return { newfollow, follow, follow2, unfollowed, unfollowed2 }
+      return { newfollow, follow, follow2, unfollowed: bLab8A.data.unfollowed, unfollowed2: bLab8A.data.unfollowed2 }
     }
   }
 
@@ -1007,7 +1007,8 @@
           numbers++
         }
       }
-      Console_log(`${key}有${numbers}条数据去重成功`)
+      Console_log(`${key}有${numbers}条数据去重成功，剩余${bLab8A.data[key].length}条数据：`)
+      console.log(bLab8A.data[key])
     }
     bLab8A.save(bLab8A.data)
   }
@@ -1017,7 +1018,7 @@
   const testC = async () => {
     let data = []
     for (let i = parseInt(prompt("Enter", 1)); i <= 703223001; i++) {
-      if(wanaStop) break
+      if (wanaStop) break
       try {
         Console_log(`${i}/${703223001}`)
         if (await BilibiliFollowChecker.checkFollow(i)) {
@@ -1052,5 +1053,5 @@
   })
   DEV_Log && GM_registerMenuCommand("测试", () => { testC() })
   DEV_Log && GM_registerMenuCommand("想停下来", () => { wanaStop = true })
-  GM_registerMenuCommand("检查UID", () => { BilibiliFollowChecker.checkFollow(prompt("输入UID", BilibiliFollowChecker.checkuid)).then(Console_log).catch(console.error) })
+  GM_registerMenuCommand("检查UID", () => { BilibiliFollowChecker.checkFollow(parseInt(prompt("输入UID", BilibiliFollowChecker.checkuid))).then(Console_log).catch(console.error) })
 })()
