@@ -971,7 +971,7 @@
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i]
       console.log(parseData[key].length, key)
-      const numbers = 0
+      let numbers = 0
       for (let j = 0; j < parseData[key].length; j++) {
         const item = parseData[key][j]
         let isExist = false
@@ -987,8 +987,8 @@
         }
       }
       console.log(`${key}有${numbers}条数据加入成功`)
-      bLab8A.save(bLab8A.data)
     }
+    bLab8A.save(bLab8A.data)
     return "数据加载成功"
   }
 
