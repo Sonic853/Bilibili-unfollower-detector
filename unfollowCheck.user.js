@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.5
+// @version      0.6
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
@@ -28,17 +28,17 @@
   const DEV_Log = Boolean(localStorage.getItem("Dev-853"))
   const localItem = "Lab8A"
   const NAME = "互关检测"
-  const Console_log = function (text) {
+  const Console_log = function (...text) {
     let d = new Date().toLocaleTimeString()
-    console.log("[" + NAME + "][" + d + "]: ",text)
+    console.log(`[${NAME}][${d}]: `, ...text)
   }
-  const Console_Devlog = function (text) {
+  const Console_Devlog = function (...text) {
     let d = new Date().toLocaleTimeString()
-    DEV_Log && (console.log("[" + NAME + "][" + d + "]: ",text))
+    DEV_Log && (console.log(`[${NAME}][${d}]: `, ...text))
   }
-  const Console_error = function (text) {
+  const Console_error = function (...text) {
     let d = new Date().toLocaleTimeString()
-    console.error("[" + NAME + "][" + d + "]: ",text)
+    console.error(`[${NAME}][${d}]: `, ...text)
   }
 
   const snooze = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -262,7 +262,7 @@
     }
     async getFollowings() {
       this.pn = 1
-      console.log(`正在获取第${this.pn}页关注列表`)
+      Console_log(`正在获取第${this.pn}页关注列表`)
       /**
        * @type {{
        * code: number,
@@ -368,7 +368,7 @@
           this.pn += 1
           for (; this.pn <= Math.ceil(this.total / this.ps); this.pn++) {
             await RList.Push()
-            console.log(`正在获取第${this.pn}页关注列表`)
+            Console_log(`正在获取第${this.pn}页关注列表`)
             /**
              * @type {{
              * code: number,
@@ -436,7 +436,7 @@
     }
     async getFollowers() {
       this.pn = 1
-      console.log(`正在获取第${this.pn}页粉丝列表`)
+      Console_log(`正在获取第${this.pn}页粉丝列表`)
       /**
        * @type {{
        * code: number,
@@ -543,7 +543,7 @@
           let maxpn = Math.ceil(this.fansTotal / this.ps) > this.fansMaxpn ? this.fansMaxpn : Math.ceil(this.fansTotal / this.ps)
           for (; this.pn <= maxpn; this.pn++) {
             await RList.Push()
-            console.log(`正在获取第${this.pn}页粉丝列表`)
+            Console_log(`正在获取第${this.pn}页粉丝列表`)
             const data1 = JSON.parse(await HTTPsend(this.fansUrl, "GET", { "Referer": this.fansReferer }))
             if (data1 && data1.code === 0) {
               list = list.concat(data1.data.list)
@@ -620,7 +620,7 @@
       if (status.code === 0) {
         if (status.data.whisper > 0) {
           for (this.pn = 1; this.pn <= Math.ceil(status.data.whisper / this.ps); this.pn++) {
-            console.log(`正在获取第${this.pn}页悄悄关注列表`)
+            Console_log(`正在获取第${this.pn}页悄悄关注列表`)
             /**
              * @type {{
              * code: number,
@@ -688,7 +688,7 @@
      * @param {number} uid 
      */
     async checkFollow(uid) {
-      console.log(`正在检查${uid}是否已经关注`)
+      Console_log(`正在检查${uid}是否已经关注`)
       this.checkuid = uid
       /**
        * @type {{
@@ -726,7 +726,7 @@
 
   const followingsDiff = async () => {
     if (bLab8A.data.follow.length === 0 && bLab8A.data.follow2.length === 0) {
-      console.log("没有关注列表")
+      Console_log("没有关注列表")
       bLab8A.data.follow = await BilibiliFollowChecker.getFollowings()
       if (bLab8A.data.follow.length === 0) {
         return { newfollow: [], follow: [], follow2: [], unfollowed: [], unfollowed2: [] }
@@ -755,66 +755,30 @@
             follow.push(list[i])
             break
           default:
-            console.log(list[i].attribute)
+            Console_log(list[i].attribute)
             wht.push(list[i])
             break
         }
       }
       if (wht.length > 0) {
-        console.log(`有${wht.length}个未知类型的关注`)
+        Console_log(`有${wht.length}个未知类型的关注`)
       }
-      console.log(follow.length)
+      Console_log(follow.length)
       let newfollow = follow.filter(item => {
         return !bLab8A.data.follow.some(item2 => {
           return item.mid === item2.mid
         })
       })
-      // for (let i = 0; i < follow.length; i++) {
-      //     let isExist = false
-      //     for (let j = 0; j < bLab8A.data.follow.length; j++) {
-      //         if (follow[i].mid === bLab8A.data.follow[j].mid) {
-      //             isExist = true
-      //             break
-      //         }
-      //     }
-      //     if (!isExist) {
-      //         newfollow.push(follow[i])
-      //     }
-      // }
       let unfollowed = bLab8A.data.follow.filter(item => {
         return !follow.some(item2 => {
           return item.mid === item2.mid
         })
       })
-      // for (let i = 0; i < bLab8A.data.follow.length; i++) {
-      //     let isExist = false
-      //     for (let j = 0; j < follow.length; j++) {
-      //         if (bLab8A.data.follow[i].mid === follow[j].mid) {
-      //             isExist = true
-      //             break
-      //         }
-      //     }
-      //     if (!isExist) {
-      //         unfollowed.push(bLab8A.data.follow[i])
-      //     }
-      // }
       let unfollowed2 = bLab8A.data.follow2.filter(item => {
         return !follow2.some(item2 => {
           return item.mid === item2.mid
         })
       })
-      // for (let i = 0; i < bLab8A.data.follow2.length; i++) {
-      //     let isExist = false
-      //     for (let j = 0; j < follow2.length; j++) {
-      //         if (bLab8A.data.follow2[i].mid === follow2[j].mid) {
-      //             isExist = true
-      //             break
-      //         }
-      //     }
-      //     if (!isExist) {
-      //         unfollowed2.push(bLab8A.data.follow2[i])
-      //     }
-      // }
       bLab8A.data.follow = follow
       bLab8A.data.follow2 = follow2
       bLab8A.data.unfollowed.concat(unfollowed)
@@ -839,8 +803,8 @@
   }
 
   const fansCheck = async () => {
-    console.log("开始检查粉丝")
-    console.log("由于粉丝列表最多只能获取到50页，所以这里只检查前50页")
+    Console_log("开始检查粉丝")
+    Console_log("由于粉丝列表最多只能获取到50页，所以这里只检查前50页")
     if (bLab8A.data.fans.length === 0) {
       bLab8A.data.fans = await BilibiliFollowChecker.getFollowers()
       bLab8A.save(bLab8A.data)
@@ -868,29 +832,17 @@
           bLab8A.data.fans.push(fans[i])
         }
       }
-      // for (let i = 0; i < fans.length; i++) {
-      //     let isExist = false
-      //     for (let j = 0; j < bLab8A.data.fans.length; j++) {
-      //         if (fans[i].mid === bLab8A.data.fans[j].mid) {
-      //             isExist = true
-      //             break
-      //         }
-      //     }
-      //     if (!isExist) {
-      //         newfans.push(fans[i])
-      //     }
-      // }
       bLab8A.save(bLab8A.data)
       return { newfans, fans: bLab8A.data.fans }
     }
   }
 
   const whispersCheck = async () => {
-    console.log("开始检查悄悄关注")
+    Console_log("开始检查悄悄关注")
     if (bLab8A.data.whispers.length === 0) {
       bLab8A.data.whispers = await BilibiliFollowChecker.getWhispers()
       // bLab8A.data.whispers.map(whispers => {
-      //   console.log(whispers.mid, whispers.uname, whispers.attribute)
+      //   Console_log(whispers.mid, whispers.uname, whispers.attribute)
       // })
       bLab8A.save(bLab8A.data)
       return { newwhispers: bLab8A.data.whispers, whispers: bLab8A.data.whispers }
@@ -918,7 +870,7 @@
         }
       }
       // bLab8A.data.whispers.map(whispers => {
-      //   console.log(whispers.mid, whispers.uname, whispers.attribute)
+      //   Console_log(whispers.mid, whispers.uname, whispers.attribute)
       // })
       bLab8A.save(bLab8A.data)
       return { newwhispers, whispers: bLab8A.data.whispers }
@@ -931,7 +883,7 @@
       await RList.Push()
       await RList.Push()
       const isFollowed = await BilibiliFollowChecker.checkFollow(whisper.mid)
-      console.log(whisper.mid, whisper.uname, whisper.attribute, isFollowed ? "已关注我" : "未关注我")
+      Console_log(whisper.mid, whisper.uname, whisper.attribute, isFollowed ? "已关注我" : "未关注我")
       if (isFollowed) {
         // 将whisper加入到bLab8A.data.whispersfollow中，同时避免重复加入
         let isExist = false
@@ -970,7 +922,7 @@
     const keys = ["follow", "follow2", "unfollowed", "unfollowed2", "fans", "unfans", "whispers", "unwhispers", "whispersfollow"]
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i]
-      console.log(parseData[key].length, key)
+      Console_log(parseData[key].length, key)
       let numbers = 0
       for (let j = 0; j < parseData[key].length; j++) {
         const item = parseData[key][j]
@@ -986,7 +938,7 @@
           numbers++
         }
       }
-      console.log(`${key}有${numbers}条数据加入成功`)
+      Console_log(`${key}有${numbers}条数据加入成功`)
     }
     bLab8A.save(bLab8A.data)
     return "数据加载成功"
@@ -1010,7 +962,7 @@
       fileInput.style.zIndex = '9999'
       fileInput.addEventListener('change', (e) => {
         const file = fileInput.files[0]
-        console.log(file);
+        Console_log(file);
         if (!file) {
           return reject("未选择文件")
         }
@@ -1055,23 +1007,26 @@
           numbers++
         }
       }
-      console.log(`${key}有${numbers}条数据去重成功`)
+      Console_log(`${key}有${numbers}条数据去重成功`)
     }
     bLab8A.save(bLab8A.data)
   }
 
+  let wanaStop = false
+
   const testC = async () => {
     let data = []
-    for (let i = 1; i <= 703223001; i++) {
+    for (let i = parseInt(prompt("Enter", 1)); i <= 703223001; i++) {
+      if(wanaStop) break
       try {
-        console.log(`${i}/${703223001}`)
+        Console_log(`${i}/${703223001}`)
         if (await BilibiliFollowChecker.checkFollow(i)) {
-          console.log(`${i} 已关注我`)
+          Console_log(`${i} 已关注我`)
           data.push(i)
         }
       }
       catch (e) {
-        console.log(e)
+        Console_log(e)
         break
       }
     }
@@ -1079,12 +1034,12 @@
     saveAs(Data, `test${data.length}.json`)
   }
 
-  GM_registerMenuCommand("获取关注差异", () => { followingsDiff().then(console.log).catch(console.error) })
-  GM_registerMenuCommand("检查粉丝", () => { fansCheck().then(console.log).catch(console.error) })
-  GM_registerMenuCommand("更新悄悄关注", () => { whispersCheck().then(console.log).catch(console.error) })
-  GM_registerMenuCommand("检查悄悄关注的人", () => { whispersFollowCheck().then(console.log).catch(console.error) })
-  GM_registerMenuCommand("导出数据", () => { saveDataBlob().then(console.log).catch(console.error) })
-  GM_registerMenuCommand("导入数据（点击后看右下角）", () => { openFile().then(e => { console.log(loadDataBlob(e)) }).catch(console.error) })
+  GM_registerMenuCommand("获取关注差异", () => { followingsDiff().then(Console_log).catch(console.error) })
+  GM_registerMenuCommand("检查粉丝", () => { fansCheck().then(Console_log).catch(console.error) })
+  GM_registerMenuCommand("更新悄悄关注", () => { whispersCheck().then(Console_log).catch(console.error) })
+  GM_registerMenuCommand("检查悄悄关注的人", () => { whispersFollowCheck().then(Console_log).catch(console.error) })
+  GM_registerMenuCommand("导出数据", () => { saveDataBlob().then(Console_log).catch(console.error) })
+  GM_registerMenuCommand("导入数据（点击后看右下角）", () => { openFile().then(e => { Console_log(loadDataBlob(e)) }).catch(console.error) })
   GM_registerMenuCommand("数据检查", () => { checkData() })
   GM_registerMenuCommand("清空数据", () => { cleanData() })
   GM_registerMenuCommand("你的UID", () => {
@@ -1096,5 +1051,6 @@
     }
   })
   DEV_Log && GM_registerMenuCommand("测试", () => { testC() })
-  GM_registerMenuCommand("检查UID", () => { BilibiliFollowChecker.checkFollow(prompt("输入UID", BilibiliFollowChecker.checkuid)).then(console.log).catch(console.error) })
+  DEV_Log && GM_registerMenuCommand("想停下来", () => { wanaStop = true })
+  GM_registerMenuCommand("检查UID", () => { BilibiliFollowChecker.checkFollow(prompt("输入UID", BilibiliFollowChecker.checkuid)).then(Console_log).catch(console.error) })
 })()
