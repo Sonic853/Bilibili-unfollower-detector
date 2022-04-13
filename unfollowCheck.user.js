@@ -1031,6 +1031,6 @@
   GM_registerMenuCommand("更新悄悄关注", () => { whispersCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("检查悄悄关注的人", () => { whispersFollowCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("导出数据", () => { saveDataBlob().then(console.log).catch(console.error) })
-  GM_registerMenuCommand("导入数据", () => { openFile().then(e=>{console.log(loadDataBlob(e))}).catch(console.error) })
+  GM_registerMenuCommand("导入数据（点击后看右下角）", () => { openFile().then(e=>{console.log(loadDataBlob(e))}).catch(console.error) })
   // GM_registerMenuCommand("测试", () => { openFile().then(console.log).catch(console.error) })
 })()
