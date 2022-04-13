@@ -953,8 +953,8 @@
   const saveDataBlob = async () => {
     const bLab8AData = new Blob([JSON.stringify(bLab8A.data)], { type: "application/json;charset=utf-8" })
     // const defaultData = "{\"follow\":[],\"follow2\":[],\"unfollowed\":[],\"unfollowed2\":[],\"fans\":[],\"unfans\":[],\"whispers\":[],\"unwhispers\":[],\"whispersfollow\":[]}"
-    const date = new Date(Date.now)
-    saveAs(bLab8AData, `UID_${BilibiliFollowChecker.vmid}_f${bLab8A.data.follow.length}_2f${bLab8A.data.follow2.length}_uf${bLab8A.data.unfollowed.length}_2uf${bLab8A.data.unfollowed2.length}_${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}.json`)
+    const date = Math.round(new Date() / 1000)
+    saveAs(bLab8AData, `UID_${BilibiliFollowChecker.vmid}_f${bLab8A.data.follow.length}_2f${bLab8A.data.follow2.length}_uf${bLab8A.data.unfollowed.length}_2uf${bLab8A.data.unfollowed2.length}_${date}.json`)
     return "数据保存成功"
   }
 
@@ -996,7 +996,7 @@
    * 
    * @returns {Promise<string>}
    */
-  function openFile() {
+  const openFile = () => {
     return new Promise((resolve, reject) => {
       let fileInput = document.createElement("input")
       // 指定文件类型为json
@@ -1026,12 +1026,48 @@
     })
   }
 
+  const cleanData = () => {
+    if (confirm("确定要清空数据吗？")) {
+      if (confirm("最后一次确认，确定要清空数据吗？")) {
+        bLab8A.data = { uid: bLab8A.data.uid, follow: [], follow2: [], unfollowed: [], unfollowed2: [], fans: [], unfans: [], whispers: [], unwhispers: [], whispersfollow: [] }
+        bLab8A.save(bLab8A.data)
+      }
+    }
+  }
+
+  const checkData = () => {
+    // 数据去重
+    const keys = ["follow", "follow2", "unfollowed", "unfollowed2", "fans", "unfans", "whispers", "unwhispers", "whispersfollow"]
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      let numbers = 0
+      for (let j = 0; j < bLab8A.data[key].length; j++) {
+        const item = bLab8A.data[key][j]
+        let isExist = false
+        for (let k = 0; k < bLab8A.data[key].length; k++) {
+          if (j !== k && item.mid === bLab8A.data[key][k].mid) {
+            isExist = true
+            break
+          }
+        }
+        if (isExist) {
+          bLab8A.data[key].splice(j, 1)
+          numbers++
+        }
+      }
+      console.log(`${key}有${numbers}条数据去重成功`)
+    }
+    bLab8A.save(bLab8A.data)
+  }
+
   GM_registerMenuCommand("获取关注差异", () => { followingsDiff().then(console.log).catch(console.error) })
   GM_registerMenuCommand("检查粉丝", () => { fansCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("更新悄悄关注", () => { whispersCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("检查悄悄关注的人", () => { whispersFollowCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("导出数据", () => { saveDataBlob().then(console.log).catch(console.error) })
-  GM_registerMenuCommand("导入数据（点击后看右下角）", () => { openFile().then(e=>{console.log(loadDataBlob(e))}).catch(console.error) })
+  GM_registerMenuCommand("导入数据（点击后看右下角）", () => { openFile().then(e => { console.log(loadDataBlob(e)) }).catch(console.error) })
+  GM_registerMenuCommand("数据检查", () => { checkData() })
+  GM_registerMenuCommand("清空数据", () => { cleanData() })
   GM_registerMenuCommand("你的UID", () => {
     const vmid = prompt("请输入你的UID", BilibiliFollowChecker.vmid)
     if (vmid) {
