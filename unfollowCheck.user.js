@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.2
+// @version      0.3
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
@@ -189,7 +189,7 @@
     }
     load() {
       Console_log("正在加载数据")
-      const defaultData = "{\"follow\":[],\"follow2\":[],\"unfollowed\":[],\"unfollowed2\":[],\"fans\":[],\"unfans\":[],\"whispers\":[],\"unwhispers\":[],\"whispersfollow\":[]}"
+      const defaultData = "{\"uid\":1,\"follow\":[],\"follow2\":[],\"unfollowed\":[],\"unfollowed2\":[],\"fans\":[],\"unfans\":[],\"whispers\":[],\"unwhispers\":[],\"whispersfollow\":[]}"
       if (typeof GM_getValue !== 'undefined') {
         let gdata = GM_getValue(localItem, JSON.parse(defaultData))
         return gdata
@@ -211,7 +211,7 @@
     /**
      * @type {number}
      */
-    vmid = 1
+    vmid = bLab8A.data.uid
     /**
      * @type {number}
      */
@@ -1032,5 +1032,13 @@
   GM_registerMenuCommand("检查悄悄关注的人", () => { whispersFollowCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("导出数据", () => { saveDataBlob().then(console.log).catch(console.error) })
   GM_registerMenuCommand("导入数据（点击后看右下角）", () => { openFile().then(e=>{console.log(loadDataBlob(e))}).catch(console.error) })
+  GM_registerMenuCommand("你的UID", () => {
+    const vmid = prompt("请输入你的UID", BilibiliFollowChecker.vmid)
+    if (vmid) {
+      BilibiliFollowChecker.vmid = vmid
+      bLab8A.data.uid = vmid
+      bLab8A.save(bLab8A.data)
+    }
+  })
   // GM_registerMenuCommand("测试", () => { openFile().then(console.log).catch(console.error) })
 })()
