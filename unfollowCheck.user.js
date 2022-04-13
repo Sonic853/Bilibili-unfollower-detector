@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.3
+// @version      0.4
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
@@ -1060,6 +1060,24 @@
     bLab8A.save(bLab8A.data)
   }
 
+  const testC = async () => {
+    let data = []
+    for (let i = 1; i <= 703223001; i++) {
+      try {
+        console.log(`${i}/${703223001}`)
+        if (await BilibiliFollowChecker.checkFollow(i)) {
+          data.push(i)
+        }
+      }
+      catch (e) {
+        console.log(e)
+        break
+      }
+    }
+    const Data = new Blob([JSON.stringify(data)], { type: "application/json;charset=utf-8" })
+    saveAs(Data, `test${data.length}.json`)
+  }
+
   GM_registerMenuCommand("获取关注差异", () => { followingsDiff().then(console.log).catch(console.error) })
   GM_registerMenuCommand("检查粉丝", () => { fansCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("更新悄悄关注", () => { whispersCheck().then(console.log).catch(console.error) })
@@ -1071,10 +1089,11 @@
   GM_registerMenuCommand("你的UID", () => {
     const vmid = prompt("请输入你的UID", BilibiliFollowChecker.vmid)
     if (vmid) {
-      BilibiliFollowChecker.vmid = vmid
-      bLab8A.data.uid = vmid
+      BilibiliFollowChecker.vmid = Number(vmid)
+      bLab8A.data.uid = Number(vmid)
       bLab8A.save(bLab8A.data)
     }
   })
-  // GM_registerMenuCommand("测试", () => { openFile().then(console.log).catch(console.error) })
+  DEV_Log && GM_registerMenuCommand("测试", () => { testC() })
+  GM_registerMenuCommand("检查UID", () => { BilibiliFollowChecker.checkFollow(prompt("输入UID", BilibiliFollowChecker.checkuid)).then(console.log).catch(console.error) })
 })()
