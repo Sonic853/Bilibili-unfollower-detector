@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.4
+// @version      0.5
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
@@ -62,14 +62,14 @@
   }
 
   /**
-   * 
-   * @param {string} url 
-   * @param {string} method 
-   * @param {Object.<string, any>} headers 
-   * @param {string} responseType 
-   * @param {*} successHandler 
-   * @param {*} errorHandler 
-   * @returns 
+   *
+   * @param {string} url
+   * @param {string} method
+   * @param {Object.<string, any>} headers
+   * @param {string} responseType
+   * @param {*} successHandler
+   * @param {*} errorHandler
+   * @returns
    */
   let HTTPsend = function (url, method, headers, responseType, successHandler, errorHandler) {
     Console_Devlog(url)
@@ -211,7 +211,7 @@
     /**
      * @type {number}
      */
-    vmid = bLab8A.data.uid
+    vmid = typeof bLab8A.data.uid == 'string' ? parseInt(bLab8A.data.uid) : bLab8A.data.uid
     /**
      * @type {number}
      */
@@ -685,7 +685,7 @@
     }
     /**
      * 检查是否已经关注
-     * @param {number} uid 
+     * @param {number} uid
      */
     async checkFollow(uid) {
       console.log(`正在检查${uid}是否已经关注`)
@@ -959,8 +959,8 @@
   }
 
   /**
-   * 
-   * @param {string} file 
+   *
+   * @param {string} file
    * @returns {string}
    */
   const loadDataBlob = (file) => {
@@ -993,7 +993,7 @@
   }
 
   /**
-   * 
+   *
    * @returns {Promise<string>}
    */
   const openFile = () => {
@@ -1089,8 +1089,8 @@
   GM_registerMenuCommand("你的UID", () => {
     const vmid = prompt("请输入你的UID", BilibiliFollowChecker.vmid)
     if (vmid) {
-      BilibiliFollowChecker.vmid = Number(vmid)
-      bLab8A.data.uid = Number(vmid)
+      BilibiliFollowChecker.vmid = parseInt(vmid)
+      bLab8A.data.uid = parseInt(vmid)
       bLab8A.save(bLab8A.data)
     }
   })
