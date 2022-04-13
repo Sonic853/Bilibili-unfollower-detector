@@ -30,15 +30,15 @@
   const NAME = "互关检测"
   const Console_log = function (text) {
     let d = new Date().toLocaleTimeString()
-    console.log("[" + NAME + "][" + d + "]: " + text)
+    console.log("[" + NAME + "][" + d + "]: ",text)
   }
   const Console_Devlog = function (text) {
     let d = new Date().toLocaleTimeString()
-    DEV_Log && (console.log("[" + NAME + "][" + d + "]: " + text))
+    DEV_Log && (console.log("[" + NAME + "][" + d + "]: ",text))
   }
   const Console_error = function (text) {
     let d = new Date().toLocaleTimeString()
-    console.error("[" + NAME + "][" + d + "]: " + text)
+    console.error("[" + NAME + "][" + d + "]: ",text)
   }
 
   const snooze = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -62,14 +62,14 @@
   }
 
   /**
-   *
-   * @param {string} url
-   * @param {string} method
-   * @param {Object.<string, any>} headers
-   * @param {string} responseType
-   * @param {*} successHandler
-   * @param {*} errorHandler
-   * @returns
+   * 
+   * @param {string} url 
+   * @param {string} method 
+   * @param {Object.<string, any>} headers 
+   * @param {string} responseType 
+   * @param {*} successHandler 
+   * @param {*} errorHandler 
+   * @returns 
    */
   let HTTPsend = function (url, method, headers, responseType, successHandler, errorHandler) {
     Console_Devlog(url)
@@ -685,7 +685,7 @@
     }
     /**
      * 检查是否已经关注
-     * @param {number} uid
+     * @param {number} uid 
      */
     async checkFollow(uid) {
       console.log(`正在检查${uid}是否已经关注`)
@@ -959,8 +959,8 @@
   }
 
   /**
-   *
-   * @param {string} file
+   * 
+   * @param {string} file 
    * @returns {string}
    */
   const loadDataBlob = (file) => {
@@ -993,7 +993,7 @@
   }
 
   /**
-   *
+   * 
    * @returns {Promise<string>}
    */
   const openFile = () => {
@@ -1066,6 +1066,7 @@
       try {
         console.log(`${i}/${703223001}`)
         if (await BilibiliFollowChecker.checkFollow(i)) {
+          console.log(`${i} 已关注我`)
           data.push(i)
         }
       }
