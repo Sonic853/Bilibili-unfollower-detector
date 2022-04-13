@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.6
+// @version      0.7
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
@@ -781,7 +781,7 @@
       })
       bLab8A.data.follow = follow
       bLab8A.data.follow2 = follow2
-      bLab8A.data.unfollowed.concat(unfollowed)
+      bLab8A.data.unfollowed = bLab8A.data.unfollowed.concat(unfollowed)
       // 如果取消关注的人重新关注了，则把他从unfollowed中移除
       // 你觉得他们还会回来吗？嗯？
       bLab8A.data.unfollowed = bLab8A.data.unfollowed.filter(item => {
@@ -789,7 +789,7 @@
           return item.mid === item2.mid
         })
       })
-      bLab8A.data.unfollowed2.concat(unfollowed2)
+      bLab8A.data.unfollowed2 = bLab8A.data.unfollowed2.concat(unfollowed2)
       bLab8A.data.unfollowed2 = bLab8A.data.unfollowed2.filter(item => {
         return !follow2.some(item2 => {
           return item.mid === item2.mid
