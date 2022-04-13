@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.1
+// @version      0.2
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
+// @require      https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
 // @run-at       document-end
 // @license      MIT License
 // @grant        GM_addStyle
@@ -261,7 +262,7 @@
     }
     async getFollowings() {
       this.pn = 1
-      console.log(`正在获取第${this.pn}页关注列表`);
+      console.log(`正在获取第${this.pn}页关注列表`)
       /**
        * @type {{
        * code: number,
@@ -367,7 +368,7 @@
           this.pn += 1
           for (; this.pn <= Math.ceil(this.total / this.ps); this.pn++) {
             await RList.Push()
-            console.log(`正在获取第${this.pn}页关注列表`);
+            console.log(`正在获取第${this.pn}页关注列表`)
             /**
              * @type {{
              * code: number,
@@ -435,7 +436,7 @@
     }
     async getFollowers() {
       this.pn = 1
-      console.log(`正在获取第${this.pn}页粉丝列表`);
+      console.log(`正在获取第${this.pn}页粉丝列表`)
       /**
        * @type {{
        * code: number,
@@ -542,7 +543,7 @@
           let maxpn = Math.ceil(this.fansTotal / this.ps) > this.fansMaxpn ? this.fansMaxpn : Math.ceil(this.fansTotal / this.ps)
           for (; this.pn <= maxpn; this.pn++) {
             await RList.Push()
-            console.log(`正在获取第${this.pn}页粉丝列表`);
+            console.log(`正在获取第${this.pn}页粉丝列表`)
             const data1 = JSON.parse(await HTTPsend(this.fansUrl, "GET", { "Referer": this.fansReferer }))
             if (data1 && data1.code === 0) {
               list = list.concat(data1.data.list)
@@ -619,7 +620,7 @@
       if (status.code === 0) {
         if (status.data.whisper > 0) {
           for (this.pn = 1; this.pn <= Math.ceil(status.data.whisper / this.ps); this.pn++) {
-            console.log(`正在获取第${this.pn}页悄悄关注列表`);
+            console.log(`正在获取第${this.pn}页悄悄关注列表`)
             /**
              * @type {{
              * code: number,
@@ -728,7 +729,7 @@
       console.log("没有关注列表")
       bLab8A.data.follow = await BilibiliFollowChecker.getFollowings()
       if (bLab8A.data.follow.length === 0) {
-        return { newfollow: [], follow: [], follow2: [], unfollowed: [], unfollowed2: [] };
+        return { newfollow: [], follow: [], follow2: [], unfollowed: [], unfollowed2: [] }
       }
       bLab8A.data.follow2 = bLab8A.data.follow.filter(item => {
         return item.attribute === 6
@@ -749,14 +750,14 @@
           case 6:
             follow.push(list[i])
             follow2.push(list[i])
-            break;
+            break
           case 2:
             follow.push(list[i])
-            break;
+            break
           default:
             console.log(list[i].attribute)
             wht.push(list[i])
-            break;
+            break
         }
       }
       if (wht.length > 0) {
@@ -925,7 +926,7 @@
   }
 
   const whispersFollowCheck = async () => {
-    for(let i = 0; i < bLab8A.data.whispers.length; i++) {
+    for (let i = 0; i < bLab8A.data.whispers.length; i++) {
       const whisper = bLab8A.data.whispers[i]
       await RList.Push()
       await RList.Push()
@@ -949,8 +950,87 @@
     return "悄悄关注检查完毕"
   }
 
+  const saveDataBlob = async () => {
+    const bLab8AData = new Blob([JSON.stringify(bLab8A.data)], { type: "application/json;charset=utf-8" })
+    // const defaultData = "{\"follow\":[],\"follow2\":[],\"unfollowed\":[],\"unfollowed2\":[],\"fans\":[],\"unfans\":[],\"whispers\":[],\"unwhispers\":[],\"whispersfollow\":[]}"
+    const date = new Date(Date.now)
+    saveAs(bLab8AData, `UID_${BilibiliFollowChecker.vmid}_f${bLab8A.data.follow.length}_2f${bLab8A.data.follow2.length}_uf${bLab8A.data.unfollowed.length}_2uf${bLab8A.data.unfollowed2.length}_${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}.json`)
+    return "数据保存成功"
+  }
+
+  /**
+   * 
+   * @param {string} file 
+   * @returns {string}
+   */
+  const loadDataBlob = (file) => {
+    // const file = await openFile()
+    const parseData = JSON.parse(file)
+    // 逐个导入follow，follow2，unfollowed，unfollowed2，fans，unfans，whispers，unwhispers，whispersfollow数据，同时避免重复加入
+    const keys = ["follow", "follow2", "unfollowed", "unfollowed2", "fans", "unfans", "whispers", "unwhispers", "whispersfollow"]
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]
+      console.log(parseData[key].length, key)
+      const numbers = 0
+      for (let j = 0; j < parseData[key].length; j++) {
+        const item = parseData[key][j]
+        let isExist = false
+        for (let k = 0; k < bLab8A.data[key].length; k++) {
+          if (item.mid === bLab8A.data[key][k].mid) {
+            isExist = true
+            break
+          }
+        }
+        if (!isExist) {
+          bLab8A.data[key].push(item)
+          numbers++
+        }
+      }
+      console.log(`${key}有${numbers}条数据加入成功`)
+      bLab8A.save(bLab8A.data)
+    }
+    return "数据加载成功"
+  }
+
+  /**
+   * 
+   * @returns {Promise<string>}
+   */
+  function openFile() {
+    return new Promise((resolve, reject) => {
+      let fileInput = document.createElement("input")
+      // 指定文件类型为json
+      fileInput.type = 'file'
+      fileInput.accept = 'application/json'
+      // fileInput.setAttribute("accept", ".json")
+      fileInput.style.backgroundColor = '#666'
+      fileInput.style.position = 'fixed'
+      fileInput.style.right = '0px'
+      fileInput.style.bottom = '0px'
+      fileInput.style.zIndex = '9999'
+      fileInput.addEventListener('change', (e) => {
+        const file = fileInput.files[0]
+        console.log(file);
+        if (!file) {
+          return reject("未选择文件")
+        }
+        let reader = new FileReader()
+        reader.onload = (e1) => {
+          let contents = e1.target.result
+          resolve(contents)
+          document.body.removeChild(fileInput)
+        }
+        reader.readAsText(file)
+      })
+      document.body.appendChild(fileInput)
+    })
+  }
+
   GM_registerMenuCommand("获取关注差异", () => { followingsDiff().then(console.log).catch(console.error) })
   GM_registerMenuCommand("检查粉丝", () => { fansCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("更新悄悄关注", () => { whispersCheck().then(console.log).catch(console.error) })
   GM_registerMenuCommand("检查悄悄关注的人", () => { whispersFollowCheck().then(console.log).catch(console.error) })
+  GM_registerMenuCommand("导出数据", () => { saveDataBlob().then(console.log).catch(console.error) })
+  GM_registerMenuCommand("导入数据", () => { openFile().then(e=>{console.log(loadDataBlob(e))}).catch(console.error) })
+  // GM_registerMenuCommand("测试", () => { openFile().then(console.log).catch(console.error) })
 })()
