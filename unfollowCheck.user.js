@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili哔哩哔哩互相关注检测脚本
 // @namespace    http://blog.853lab.com/
-// @version      0.8
+// @version      0.9
 // @description  检测互关的人
 // @author       Sonic853
 // @include      https://space.bilibili.com/*
@@ -62,14 +62,14 @@
   }
 
   /**
-   * 
-   * @param {string} url 
-   * @param {string} method 
-   * @param {Object.<string, any>} headers 
-   * @param {string} responseType 
-   * @param {*} successHandler 
-   * @param {*} errorHandler 
-   * @returns 
+   *
+   * @param {string} url
+   * @param {string} method
+   * @param {Object.<string, any>} headers
+   * @param {string} responseType
+   * @param {*} successHandler
+   * @param {*} errorHandler
+   * @returns
    */
   let HTTPsend = function (url, method, headers, responseType, successHandler, errorHandler) {
     Console_Devlog(url)
@@ -434,7 +434,7 @@
         return Promise.reject(data)
       }
     }
-    async getFollowers() {
+    async getFollowers(page1) {
       this.pn = 1
       Console_log(`正在获取第${this.pn}页粉丝列表`)
       /**
@@ -538,7 +538,7 @@
          *  }[]}
          */
         let list = data.data.list
-        if (list.length > 0 && list.length < this.fansTotal) {
+        if (!page1 && list.length > 0 && list.length < this.fansTotal) {
           this.pn += 1
           let maxpn = Math.ceil(this.fansTotal / this.ps) > this.fansMaxpn ? this.fansMaxpn : Math.ceil(this.fansTotal / this.ps)
           for (; this.pn <= maxpn; this.pn++) {
@@ -685,7 +685,7 @@
     }
     /**
      * 检查是否已经关注
-     * @param {number} uid 
+     * @param {number} uid
      */
     async checkFollow(uid) {
       Console_log(`正在检查${uid}是否已经关注`)
@@ -802,16 +802,16 @@
     }
   }
 
-  const fansCheck = async () => {
+  const fansCheck = async (page1) => {
     Console_log("开始检查粉丝")
     Console_log("由于粉丝列表最多只能获取到50页，所以这里只检查前50页")
     if (bLab8A.data.fans.length === 0) {
-      bLab8A.data.fans = await BilibiliFollowChecker.getFollowers()
+      bLab8A.data.fans = await BilibiliFollowChecker.getFollowers(page1)
       bLab8A.save(bLab8A.data)
       return { newfans: bLab8A.data.fans, fans: bLab8A.data.fans }
     }
     else {
-      let fans = await BilibiliFollowChecker.getFollowers()
+      let fans = await BilibiliFollowChecker.getFollowers(page1)
       let newfans = []
       // 与bLab8A.data.fans比较，获取新增的粉丝
       newfans = fans.filter(item => {
@@ -850,9 +850,16 @@
     else {
       let whispers = await BilibiliFollowChecker.getWhispers()
       let newwhispers = []
+      let unwhispers = []
       // 与bLab8A.data.whispers比较，获取新增的悄悄关注
       newwhispers = whispers.filter(item => {
         return !bLab8A.data.whispers.some(item2 => {
+          return item.mid === item2.mid
+        })
+      })
+      // 与bLab8A.data.whispers比较，获取减少的悄悄关注
+      unwhispers = bLab8A.data.whispers.filter(item => {
+        return !whispers.some(item2 => {
           return item.mid === item2.mid
         })
       })
@@ -869,11 +876,38 @@
           bLab8A.data.whispers.push(whispers[i])
         }
       }
-      // bLab8A.data.whispers.map(whispers => {
-      //   Console_log(whispers.mid, whispers.uname, whispers.attribute)
-      // })
+      // 将unwhispers加入到bLab8A.data.unwhispers中，同时避免重复加入
+      for (let i = 0; i < unwhispers.length; i++) {
+        let isExist = false
+        for (let j = 0; j < bLab8A.data.unwhispers.length; j++) {
+          if (unwhispers[i].mid === bLab8A.data.unwhispers[j].mid) {
+            isExist = true
+            break
+          }
+        }
+        if (!isExist) {
+          bLab8A.data.unwhispers.push(unwhispers[i])
+        }
+      }
+      // 从bLab8A.data.whispers中移除unwhispers
+      bLab8A.data.whispers = bLab8A.data.whispers.filter(item => {
+        return !unwhispers.some(item2 => {
+          return item.mid === item2.mid
+        })
+      })
+      // 如果悄悄关注变成了关注，则从bLab8A.data.unwhispers中移除
+      bLab8A.data.unwhispers = bLab8A.data.unwhispers.filter(item => {
+        return !bLab8A.data.follow.some(item2 => {
+          return item.mid === item2.mid
+        })
+      })
+      bLab8A.data.unwhispers = bLab8A.data.unwhispers.filter(item => {
+        return !bLab8A.data.follow2.some(item2 => {
+          return item.mid === item2.mid
+        })
+      })
       bLab8A.save(bLab8A.data)
-      return { newwhispers, whispers: bLab8A.data.whispers }
+      return { newwhispers, unwhispers: bLab8A.data.unwhispers, whispers: bLab8A.data.whispers }
     }
   }
 
@@ -911,8 +945,8 @@
   }
 
   /**
-   * 
-   * @param {string} file 
+   *
+   * @param {string} file
    * @returns {string}
    */
   const loadDataBlob = (file) => {
@@ -945,7 +979,7 @@
   }
 
   /**
-   * 
+   *
    * @returns {Promise<string>}
    */
   const openFile = () => {
@@ -1037,6 +1071,7 @@
 
   GM_registerMenuCommand("获取关注差异", () => { followingsDiff().then(Console_log).catch(console.error) })
   GM_registerMenuCommand("检查粉丝", () => { fansCheck().then(Console_log).catch(console.error) })
+  GM_registerMenuCommand("检查粉丝第一页", () => { fansCheck(true).then(Console_log).catch(console.error) })
   GM_registerMenuCommand("更新悄悄关注", () => { whispersCheck().then(Console_log).catch(console.error) })
   GM_registerMenuCommand("检查悄悄关注的人", () => { whispersFollowCheck().then(Console_log).catch(console.error) })
   GM_registerMenuCommand("导出数据", () => { saveDataBlob().then(Console_log).catch(console.error) })
